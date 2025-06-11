@@ -2,7 +2,7 @@ project:
   type: website
 
 website:
-  title: "David Hansen - Data Science Portfolio"
+  title: "David Hansen - Data Science Blog"
   favicon: Images/favicon.png
   back-to-top-navigation: true
   repo-url: https://github.com/DavidJH1/DavidJH1.github.io
