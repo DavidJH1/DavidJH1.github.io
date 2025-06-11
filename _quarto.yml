@@ -13,7 +13,7 @@ website:
     left: "David Hansen 2024©"
     right: 
       - icon: linkedin
-        href: www.linkedin.com/in/davidjh1
+        href: https://www.linkedin.com/in/davidjh1
 
   navbar:
     background: primary
@@ -39,11 +39,11 @@ website:
       contents:
         - text: "Shopify graphQL API"
           file: graphql.qmd
-    - title: "Guitar Hero AutoCharter"
+    - title: "Clone Hero Auto Charter"
       style: "docked"
       background: light
       contents:
-        - text: "Guitar Hero Auto Charter"
+        - text: "Clone Hero Auto Charter"
           file: ghac.qmd
 
 format:  
