@@ -1,0 +1,129 @@
+---
+title: "Getting Started with Shopify's GraphQL Admin API"
+subtitle: "Understanding queries, navigating docs, and pulling full datasets with pagination"
+author: "David Hansen"
+date: 2025-06-14
+categories: [Shopify, GraphQL, API]
+format:
+  html:
+    toc: true
+    code-copy: true
+    code-overflow: wrap
+    page-layout: full
+---
+
+## Introduction
+
+Shopify has been transitioning its Admin API from REST to GraphQL over the past year, and developers are now strongly encouraged to use GraphQL when accessing store data. I recently had the opportunity to help a local business improve their inventory tracking system and used Shopify’s GraphQL Admin API as the foundation for the project.
+
+This post documents what I learned from that experience — especially around authentication, querying structure, and pagination — to help others new to Shopify’s GraphQL API.
+
+---
+
+## Gaining API Access
+
+To begin making queries, I first had to:
+
+- Create a Shopify developer account
+- Request access from the store owner to install a custom app
+- Generate an Admin API access token
+
+With the token in hand, I could authenticate my requests and begin interacting with store data.
+
+---
+
+## Learning GraphQL’s Structure
+
+GraphQL is a powerful tool — but it comes with a learning curve. One of the most important features to understand is that GraphQL **returns exactly what you ask for, and nothing more**.
+
+This is both its strength and a challenge for beginners. Unlike a REST API where you hit a URL and get a full payload, GraphQL requires you to define the structure of your response. That means you need to:
+
+- Understand the structure of Shopify’s data model
+- Know what fields are available
+- Read and reference Shopify’s GraphQL Admin API documentation extensively
+
+At first, this can be overwhelming because the docs are deep and highly flexible — but once you get used to it, it becomes a very repeatable way to fetch exactly the data you need.
+
+---
+
+## My Use Case: Identifying Old Inventory
+
+The store I worked with was concerned that certain items had been sitting on shelves too long. They wanted to:
+
+- List all current in-store items
+- See how long each item had been available
+
+To solve this, I needed a dataframe where each row represented a unique item, with columns for:
+
+- Inventory quantity
+- Date it was created/added to Shopify
+
+Below is the query I wrote to pull that data:
+
+```graphql
+query currentInventory($cursor : String){
+    inventoryItems(first: 100, after: $cursor) {
+        edges{
+            cursor
+            node{
+                id
+                createdAt
+                sku
+                # Replace {location_id} with your actual Shopify Location GID
+                inventoryLevel(locationId: "gid://shopify/Location/{location_id}") {
+                    quantities (names: ["available"]) {
+                        name
+                        quantity
+                    }
+                }
+            }
+        }
+        pageInfo{
+            hasNextPage
+            endCursor
+        }
+    }
+}
+```
+
+## The Challenge of Pagination
+
+One of the first technical challenges I encountered was **pagination**. In Shopify’s GraphQL Admin API, you can’t simply ask for “all” of something — you need to specify **how many** results you want and manage pagination manually. Looking at the query we can see that I needed to include a pageInfo block that contains the information required for pagination, **endCursor** and **hasNextPage**
+
+This means your query must:
+
+- Define a `first` value (e.g., `first: 100`)
+- Return a `pageInfo` block with `hasNextPage` and `endCursor`
+- Use the `endCursor` value to fetch the next “page” of results
+- Loop through pages until `hasNextPage` is `false`
+
+A simple example loop
+
+```python
+while hasNextPage:
+    response = run_query(cursor)                #make a call
+    data.extend(response["data"])               #parse the response data
+    cursor = response["pageInfo"]["endCursor"]  #update the pagination info
+```
+
+
+This differs from REST APIs, where a single call often returns a full dataset (or paginates for you behind the scenes). With GraphQL, **you control the page flow**, which is powerful but also requires more logic.
+
+> Think of it like reading a book — each query returns a defined “page” of data, and you flip through by passing a bookmark (`endCursor`) to your next call.
+
+## Conclusion
+
+GraphQL offers a high level of control and precision, making it an ideal tool for pulling tailored data — especially when working with platforms like Shopify. But with that control comes responsibility: you have to understand what you’re asking for and manage the flow of data yourself.
+
+Here’s what I learned from this first real-world implementation:
+
+- **You get exactly what you ask for** — nothing more, nothing less.
+- **You must understand the data model** — because there’s no “give me everything” fallback.
+- **Pagination is essential** — and needs to be built into your query and logic.
+- **Documentation is your best friend** — Shopify’s is excellent, but still requires study.
+
+Once I understood how to construct precise queries and loop through paginated results, I was able to build a reliable tool to identify stale inventory for the business — a direct win powered by GraphQL.
+
+
+#### resource links
+[Shopify Admin API Docs](https://shopify.dev/docs/api/admin-graphql)
