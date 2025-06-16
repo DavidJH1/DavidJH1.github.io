@@ -2,12 +2,14 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.7.31">
+<meta name="generator" content="quarto-1.7.32">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="author" content="David Hansen">
+<meta name="dcterms.date" content="2025-06-16">
 
-<title>ghac – David Hansen - Data Science Blog</title>
+<title>Auto-Charting Guitar Hero Songs with Machine Learning – David Hansen - Data Science Blog</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -19,6 +21,41 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -37,14 +74,14 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-e1a5c8363afafaef2c763b6775fbf3ca.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-8ef56b68f8fa1e9d2ba328e99e439f80.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-e1a5c8363afafaef2c763b6775fbf3ca.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-2fef5ea3f8957b3e4ecc936fc74692ca.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-fa20e5df5b04e396962b405e176440af.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-dark-07913385d684cca20d73a015abcad3f2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="site_libs/bootstrap/bootstrap-fa20e5df5b04e396962b405e176440af.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-87a96c2004e593ed4d5547e423e64fd5.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-c54884c127a1416265f575d4c1a798ad.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-87a96c2004e593ed4d5547e423e64fd5.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -307,18 +344,297 @@ ul.task-list li input[type="checkbox"] {
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#background" id="toc-background" class="nav-link active" data-scroll-target="#background">Background</a></li>
+  <li><a href="#data-collection" id="toc-data-collection" class="nav-link" data-scroll-target="#data-collection">Data Collection</a></li>
+  <li><a href="#data-processing" id="toc-data-processing" class="nav-link" data-scroll-target="#data-processing">Data Processing</a>
+  <ul class="collapse">
+  <li><a href="#step-1-convert-audio-to-waveforms" id="toc-step-1-convert-audio-to-waveforms" class="nav-link" data-scroll-target="#step-1-convert-audio-to-waveforms">Step 1: Convert audio to waveforms</a></li>
+  <li><a href="#step-2-generate-spectrograms" id="toc-step-2-generate-spectrograms" class="nav-link" data-scroll-target="#step-2-generate-spectrograms">Step 2: Generate Spectrograms</a></li>
+  <li><a href="#step-3-aligning-audio-with-chart-data" id="toc-step-3-aligning-audio-with-chart-data" class="nav-link" data-scroll-target="#step-3-aligning-audio-with-chart-data">Step 3: Aligning Audio with Chart Data</a></li>
+  </ul></li>
+  <li><a href="#model-training" id="toc-model-training" class="nav-link" data-scroll-target="#model-training">Model Training</a>
+  <ul class="collapse">
+  <li><a href="#choosing-a-model-architecture" id="toc-choosing-a-model-architecture" class="nav-link" data-scroll-target="#choosing-a-model-architecture">Choosing a Model Architecture</a></li>
+  <li><a href="#training-strategy" id="toc-training-strategy" class="nav-link" data-scroll-target="#training-strategy">Training Strategy</a></li>
+  <li><a href="#results-and-observations" id="toc-results-and-observations" class="nav-link" data-scroll-target="#results-and-observations">Results and Observations</a></li>
+  <li><a href="#why-the-model-struggled" id="toc-why-the-model-struggled" class="nav-link" data-scroll-target="#why-the-model-struggled">Why the Model Struggled</a></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary">Summary</a></li>
+  </ul></li>
+  <li><a href="#next-steps" id="toc-next-steps" class="nav-link" data-scroll-target="#next-steps">Next Steps</a>
+  <ul class="collapse">
+  <li><a href="#switch-to-a-sequence-based-model" id="toc-switch-to-a-sequence-based-model" class="nav-link" data-scroll-target="#switch-to-a-sequence-based-model">1. Switch to a Sequence-Based Model</a></li>
+  <li><a href="#improve-tick-to-time-alignment" id="toc-improve-tick-to-time-alignment" class="nav-link" data-scroll-target="#improve-tick-to-time-alignment">2. Improve Tick-to-Time Alignment</a></li>
+  <li><a href="#clean-the-dataset" id="toc-clean-the-dataset" class="nav-link" data-scroll-target="#clean-the-dataset">3. Clean the Dataset</a></li>
+  <li><a href="#expand-label-space-or-use-multi-label-classification" id="toc-expand-label-space-or-use-multi-label-classification" class="nav-link" data-scroll-target="#expand-label-space-or-use-multi-label-classification">4. Expand Label Space or Use Multi-Label Classification</a></li>
+  <li><a href="#add-onset-detection-or-beat-synced-windows" id="toc-add-onset-detection-or-beat-synced-windows" class="nav-link" data-scroll-target="#add-onset-detection-or-beat-synced-windows">5. Add Onset Detection or Beat-Synced Windows</a></li>
+  </ul></li>
+  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">Conclusion</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"></header>
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Auto-Charting Guitar Hero Songs with Machine Learning</h1>
+<p class="subtitle lead">Building a model that listens to music and generates Clone Hero charts</p>
+  <div class="quarto-categories">
+    <div class="quarto-category">Machine Learning</div>
+    <div class="quarto-category">Audio Analysis</div>
+    <div class="quarto-category">Clone Hero</div>
+    <div class="quarto-category">Deep Learning</div>
+  </div>
+  </div>
 
 
 
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>David Hansen </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">June 16, 2025</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
 
 
+</header>
 
 
+<section id="background" class="level2">
+<h2 class="anchored" data-anchor-id="background">Background</h2>
+<p>Guitar Hero has been around since the early 2000s, inspiring a passionate fanbase. One of the community’s biggest contributions is <strong>Clone Hero</strong>, a free PC-based version of the game that supports custom songs. Alongside Clone Hero, fans have built tools to help manually chart songs — a process that can take many hours for a single track.</p>
+<p>Each full chart typically includes multiple instruments and difficulty levels. For example, a guitar, bass, and drums chart across four difficulties adds up to <strong>15+ charts per song</strong>, not counting vocals. It’s incredibly time-consuming.</p>
+<p>The idea behind this project is simple but ambitious: <strong>build a model that can listen to a song and predict which Guitar Hero notes should go where.</strong></p>
+</section>
+<section id="data-collection" class="level2">
+<h2 class="anchored" data-anchor-id="data-collection">Data Collection</h2>
+<p>To train a model like this, I needed two key things:</p>
+<ul>
+<li>The <strong>song audio</strong></li>
+<li>The <strong>Guitar Hero chart</strong> (specifically the expert guitar part)</li>
+</ul>
+<p>Fortunately, the Clone Hero community has manually charted thousands of songs and shares them freely online. I used the site <strong>Chorus Encore</strong> to download songs and their corresponding <code>.chart</code> files. <a href="https://www.enchor.us/">Chorus</a></p>
+<p>For the scope of this initial model, I focused only on <strong>expert guitar charts</strong> to reduce complexity and eliminate other instruments and difficulties.</p>
+</section>
+<section id="data-processing" class="level2">
+<h2 class="anchored" data-anchor-id="data-processing">Data Processing</h2>
+<p>Computers don’t have ears — so to help them “listen” to music, we must convert sound into numerical data.</p>
+<section id="step-1-convert-audio-to-waveforms" class="level3">
+<h3 class="anchored" data-anchor-id="step-1-convert-audio-to-waveforms">Step 1: Convert audio to waveforms</h3>
+<p>Using <a href="https://librosa.org/">Librosa</a>, I first transformed each audio file into <strong>waveform data</strong>.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> librosa</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>y, sr <span class="op">=</span> librosa.load(<span class="st">"song.mp3"</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>librosa.display.waveshow(y, sr<span class="op">=</span>sr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Images\wave_full.png" class="img-fluid figure-img"></p>
+<figcaption>Wave Data</figcaption>
+</figure>
+</div>
+</section>
+<section id="step-2-generate-spectrograms" class="level3">
+<h3 class="anchored" data-anchor-id="step-2-generate-spectrograms">Step 2: Generate Spectrograms</h3>
+<p>While waveform data is a start, it doesn’t capture musical structure clearly. To extract meaningful audio features, we convert waveforms into <strong>spectrograms</strong>.</p>
+<p>A <strong>spectrogram</strong> shows frequency (y-axis) over time (x-axis), with amplitude represented by color intensity (measured in decibels). But raw spectrograms don’t reflect human hearing very well.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Images\spectrogram_full.png" class="img-fluid figure-img"></p>
+<figcaption>Normal Spectrogram</figcaption>
+</figure>
+</div>
+<p>To address that, we use a <strong>Mel spectrogram</strong>, which spaces frequencies on a perceptual scale that better matches how we hear sound — emphasizing low frequencies more than high ones.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> librosa</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> librosa.display</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>y, sr <span class="op">=</span> librosa.load(<span class="st">"song.mp3"</span>, sr<span class="op">=</span><span class="va">None</span>)</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>S <span class="op">=</span> librosa.feature.melspectrogram(y<span class="op">=</span>y, sr<span class="op">=</span>sr, n_mels<span class="op">=</span><span class="dv">128</span>)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>S_dB <span class="op">=</span> librosa.power_to_db(S, ref<span class="op">=</span>np.<span class="bu">max</span>)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">4</span>))</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>librosa.display.specshow(S_dB, sr<span class="op">=</span>sr, x_axis<span class="op">=</span><span class="st">'time'</span>, y_axis<span class="op">=</span><span class="st">'mel'</span>)</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>plt.colorbar(<span class="bu">format</span><span class="op">=</span><span class="st">'%+2.0f dB'</span>)</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'Mel Spectrogram'</span>)</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Images\melspec_full.png" class="img-fluid figure-img"></p>
+<figcaption>Mel Spectrogram</figcaption>
+</figure>
+</div>
+</section>
+<section id="step-3-aligning-audio-with-chart-data" class="level3">
+<h3 class="anchored" data-anchor-id="step-3-aligning-audio-with-chart-data">Step 3: Aligning Audio with Chart Data</h3>
+<p>The next major step was to <strong>align the audio data with Guitar Hero note events</strong> from the <code>.chart</code> files.</p>
+<p>Each <code>.chart</code> file contains a structured list of musical events, like so:</p>
+<pre class="text"><code>6528 = N 1 0
+6528 = N 6 0
+</code></pre>
+<p>Let’s break this down: - <strong>6528</strong> is the <strong>tick</strong> — a unit of time used by the game engine. - <strong>N</strong> means it’s a <strong>note</strong> event. - <strong>1</strong> represents the <strong>note type</strong> (0 = green, 1 = red, 2 = yellow, 3 = blue, 4 = orange). - <strong>6</strong> indicates a <strong>tap note flag</strong> (5 = HOPO, 6 = tap, 7 = open note). - <strong>0</strong> is the <strong>note duration</strong> in ticks (for sustains).</p>
+<p>At tick 6528, the chart defines a red note (<code>1</code>) that is also a tap note (<code>6</code>).</p>
+<hr>
+<p>To turn this into data the model can use, I needed to:</p>
+<ol type="1">
+<li><strong>Filter only the expert guitar part</strong> from the chart file.</li>
+<li><strong>Convert ticks to seconds</strong> using tempo and resolution metadata.</li>
+<li><strong>Slice the Mel spectrogram</strong> into fixed-size time windows (e.g., 32nd notes).</li>
+<li><strong>Assign a label</strong> to each slice based on which note (if any) occurs during that time.</li>
+</ol>
+<p>Each time slice of the Mel spectrogram becomes a training input, and the corresponding chart label becomes the target output.</p>
+<p>For instance, if a slice covers 45.3 to 45.35 seconds of the song and a red note begins at 45.32, that slice would be labeled <code>"red"</code>.</p>
+<hr>
+<p>To visualize this, I wrote a helper function to <strong>step through the Mel spectrogram</strong> and grab 12-pixel-wide image slices at specific timestamps. Here’s an example:</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Images\melspec_slice.png" class="img-fluid figure-img"></p>
+<figcaption>Mel Slice with Note</figcaption>
+</figure>
+</div>
+<p>These slices serve as the <strong>training examples</strong> for the model.</p>
+<p>If no note occurred during a time slice, I labeled it as <code>"no note"</code>.</p>
+<hr>
+<section id="a-note-on-complexity" class="level4">
+<h4 class="anchored" data-anchor-id="a-note-on-complexity">A Note on Complexity</h4>
+<p>One tricky part of this process is that <strong>multiple note events can happen at the same tick</strong>. For example:</p>
+<pre class="text"><code>6528 = N 0 0
+6528 = N 1 0
+6528 = N 2 0
+6528 = N 5 0
+</code></pre>
+<p>This could represent a <strong>chord of green-red-yellow</strong>, flagged as a HOPO. So, some game events need to be <strong>grouped</strong> or <strong>combined</strong> into a single label.</p>
+<p>Additionally, a single in-game note can span <strong>multiple lines</strong> in the <code>.chart</code> file — including note, modifier (tap, HOPO), and sustain.</p>
+<p>I created a function to: - Collapse multiple events into a <strong>single charted note</strong>. - Convert the tick to <strong>absolute time</strong> (in seconds). - Attach that note to a <strong>specific spectrogram window</strong>.</p>
+<p>With this mapping complete, I had a labeled dataset of Mel spectrogram windows aligned to actual in-game notes — ready for model training.</p>
+</section>
+</section>
+</section>
+<section id="model-training" class="level2">
+<h2 class="anchored" data-anchor-id="model-training">Model Training</h2>
+<p>With the Mel spectrogram slices labeled and aligned to the chart data, I moved on to training the machine learning model.</p>
+<section id="choosing-a-model-architecture" class="level3">
+<h3 class="anchored" data-anchor-id="choosing-a-model-architecture">Choosing a Model Architecture</h3>
+<p>Since Mel spectrograms resemble grayscale images, I began with a <strong>Convolutional Neural Network (CNN)</strong>. CNNs are well-suited to capturing local patterns in image-like data and have been successfully applied in audio classification tasks like speech recognition and music genre detection.</p>
+<p>Each spectrogram slice was treated like a mini image — with frequency on one axis and time on the other.</p>
+</section>
+<section id="training-strategy" class="level3">
+<h3 class="anchored" data-anchor-id="training-strategy">Training Strategy</h3>
+<p>Rather than training the model on the full dataset at once, I adopted a <strong>song-by-song training strategy</strong>. This allowed the model to focus on one musical style at a time and reduced memory usage.</p>
+<p>Key training details: - <strong>Input</strong>: 12-pixel-wide Mel spectrogram slices - <strong>Output</strong>: A class label for each slice (e.g., <code>green</code>, <code>red</code>, <code>yellow</code>, <code>no note</code>, etc.) - <strong>Batching</strong>: Processed one song at a time - <strong>Dataset</strong>: 127 songs from various genres</p>
+</section>
+<section id="results-and-observations" class="level3">
+<h3 class="anchored" data-anchor-id="results-and-observations">Results and Observations</h3>
+<p>After training the CNN on 127 songs, the results were mixed at best.</p>
+<p>The model showed some early signs of pattern recognition, but it struggled with accuracy and diversity in its predictions:</p>
+<ul>
+<li><strong>Limited Note Variety</strong>: In many test cases, the model predicted only one or two note types (e.g., everything became <code>yellow tap</code> or <code>blue strum</code>).</li>
+<li><strong>Sparse Multi-Note Detection</strong>: On one occasion, it predicted a few <strong>blue-yellow double strums</strong>, but this wasn’t consistent.</li>
+<li><strong>Overfitting to Common Patterns</strong>: The model learned to favor dominant notes in the dataset — usually mid-range frets — but ignored less common patterns like open notes or chords.</li>
+<li><strong>Predicting the Average</strong>: This to me showed the model had no real confindence for any specific note and basically guessed the average for all notes</li>
+</ul>
+<p>These issues persisted across multiple model architectures and tuning attempts.</p>
+<hr>
+</section>
+<section id="why-the-model-struggled" class="level3">
+<h3 class="anchored" data-anchor-id="why-the-model-struggled">Why the Model Struggled</h3>
+<p>There are several reasons I identified that might cause a CNN to struggle to chart effectively:</p>
+<section id="guitar-hero-notes-are-symbolic-not-absolute" class="level4">
+<h4 class="anchored" data-anchor-id="guitar-hero-notes-are-symbolic-not-absolute">1. <strong>Guitar Hero Notes Are Symbolic, Not Absolute</strong></h4>
+<p>In Guitar Hero, fret buttons (green, red, yellow, etc.) don’t correspond to specific frequencies or notes like a piano key would. Instead, they represent <strong>relative musical positions</strong> based on gameplay feel and visual clarity.</p>
+<p>For example: - A fast guitar run might use <code>green → orange</code> repeatedly, even as the actual pitch moves across multiple octaves. - A “green note” could sound completely different depending on the context and instrument tone.</p>
+<p>This makes the task less like audio classification and more like <strong>musical pattern modeling</strong>.</p>
+</section>
+<section id="lack-of-temporal-awareness" class="level4">
+<h4 class="anchored" data-anchor-id="lack-of-temporal-awareness">2. <strong>Lack of Temporal Awareness</strong></h4>
+<p>CNNs excel at capturing local spatial patterns but lack memory. They view each spectrogram slice <strong>independently</strong>, with no sense of what came before or after.</p>
+<p>But musical structure is <strong>sequential</strong>: - Notes depend on what came before (e.g., a tap note follows a strummed note). - Chord progressions, scales, and rhythms span multiple time slices.</p>
+<p>Without a mechanism for tracking time, the model <strong>misses the “feel”</strong> of the song.</p>
+</section>
+<section id="chart-label-noise-and-inconsistency" class="level4">
+<h4 class="anchored" data-anchor-id="chart-label-noise-and-inconsistency">3. <strong>Chart Label Noise and Inconsistency</strong></h4>
+<p>Even though I filtered for expert guitar charts, many charts downloaded from the Clone Hero community varied in quality:</p>
+<ul>
+<li>Some were poorly timed.</li>
+<li>Others were incomplete or inconsistently charted.</li>
+<li>Some songs had duplicate charts or strange timing quirks.</li>
+</ul>
+<p>This creates <strong>label noise</strong> — a known challenge for training supervised models. Garbage in, garbage out.</p>
+</section>
+<section id="audio-quality-and-genre-variety" class="level4">
+<h4 class="anchored" data-anchor-id="audio-quality-and-genre-variety">4. <strong>Audio Quality and Genre Variety</strong></h4>
+<p>The songs came from many different sources, formats, and genres. Some were high-quality studio tracks, others were fan edits or remixes with: - Loud mixing - Distorted guitars - Missing instrumental separation</p>
+<p>This variability made it harder for the model to find <strong>consistent, transferable audio patterns</strong>.</p>
+<hr>
+</section>
+</section>
+<section id="summary" class="level3">
+<h3 class="anchored" data-anchor-id="summary">Summary</h3>
+<p>Despite preprocessing and careful alignment, the CNN model failed to generalize across songs. It could latch onto local features, but it lacked the ability to: - Track musical phrasing - Understand rhythm and context - Adapt to different genres or artists</p>
+<p>This project revealed the <strong>limits of CNNs for symbolic music generation</strong>, especially in cases where labels are abstract and context-dependent — like charting Guitar Hero notes from raw audio.</p>
+</section>
+</section>
+<section id="next-steps" class="level2">
+<h2 class="anchored" data-anchor-id="next-steps">Next Steps</h2>
+<p>While the CNN-based model had limitations, this project revealed exciting opportunities for improvement and future exploration.</p>
+<p>Here are the top areas I’m planning to pursue:</p>
+<section id="switch-to-a-sequence-based-model" class="level3">
+<h3 class="anchored" data-anchor-id="switch-to-a-sequence-based-model">1. Switch to a Sequence-Based Model</h3>
+<p>Since music, and Guitar Hero charts, are <strong>inherently sequential</strong>, a model that captures <strong>temporal context</strong> is better suited to this task.</p>
+<p>Options include: - <strong>Recurrent Neural Networks (RNNs)</strong> like LSTMs or GRUs - <strong>Temporal Convolutional Networks (TCNs)</strong> - <strong>Transformer architectures</strong> like those used in music generation or transcription</p>
+<p>These models can “remember” previous inputs and identify patterns across time, which is essential for understanding rhythm, phrasing, and chart structure.</p>
+</section>
+<section id="improve-tick-to-time-alignment" class="level3">
+<h3 class="anchored" data-anchor-id="improve-tick-to-time-alignment">2. Improve Tick-to-Time Alignment</h3>
+<p>A small timing mismatch between chart ticks and audio slices could introduce major labeling errors. I’m planning to: - Review Clone Hero’s tick and tempo resolution more precisely - Cross-reference tick timing with actual beatmaps - Validate against hand-labeled timestamps</p>
+<p>Even a 50ms misalignment can cause the model to associate the wrong note with the wrong audio.</p>
+</section>
+<section id="clean-the-dataset" class="level3">
+<h3 class="anchored" data-anchor-id="clean-the-dataset">3. Clean the Dataset</h3>
+<p>Better data = better model.</p>
+<p>Future iterations will focus on: - <strong>Filtering high-quality charts only</strong> - Possibly limiting to <strong>a single band or genre</strong> (e.g., Metallica, punk rock, pop punk) - Using <strong>high-resolution, properly mastered audio files</strong></p>
+<p>Charting is already subjective, and bad labels make the model’s job nearly impossible. Reducing label noise is critical.</p>
+</section>
+<section id="expand-label-space-or-use-multi-label-classification" class="level3">
+<h3 class="anchored" data-anchor-id="expand-label-space-or-use-multi-label-classification">4. Expand Label Space or Use Multi-Label Classification</h3>
+<p>Right now, the model assumes a single label per audio slice, which fails in the case of <strong>chords</strong> or <strong>overlapping notes</strong>. I could atempt to organize and add labels to <strong>measures or phrases</strong> instead of labeling individual notes.</p>
+<p>A future model could: - Use a <strong>multi-label approach</strong> (e.g., outputting <code>[1, 0, 1, 0, 0]</code> for green + yellow) - Predict <strong>event types</strong> like tap, HOPO, sustain, etc. - Consider hierarchical prediction (e.g., first “note present,” then “which note(s)”)</p>
+</section>
+<section id="add-onset-detection-or-beat-synced-windows" class="level3">
+<h3 class="anchored" data-anchor-id="add-onset-detection-or-beat-synced-windows">5. Add Onset Detection or Beat-Synced Windows</h3>
+<p>Instead of fixed time windows (e.g., every 0.05 seconds), I could: - Align slices to <strong>beats or subdivisions</strong> using a beat tracker - Use <strong>onset detection</strong> to cut at transients (e.g., the start of each note)</p>
+<p>This would make slices more musically meaningful and reduce label ambiguity.</p>
+<hr>
+</section>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">Conclusion</h2>
+<p>This project explored what it takes to build an <strong>auto-charter for Guitar Hero songs</strong> — a model that listens to music and outputs note charts.</p>
+<p>Key accomplishments: - Built a pipeline to convert audio into Mel spectrograms - Parsed <code>.chart</code> files and aligned game notes to audio - Trained and evaluated a CNN model on 127 custom songs - Identified core challenges in symbolic audio modeling</p>
+<p>The model didn’t fully succeed — but it laid the groundwork for what a future system could become. With better timing alignment, more consistent labels, and a sequence-aware model, it’s entirely possible to generate accurate, playable Guitar Hero charts from real songs.</p>
+<p>This is just the first iteration, and I’m excited to keep building.</p>
+<hr>
+
+
+</section>
 
 <a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
