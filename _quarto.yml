@@ -1,5 +1,7 @@
 project: 
   type: website
+  resources:
+    - Images/
 
 website:
   title: "David Hansen - Data Science Blog"
@@ -23,7 +25,7 @@ website:
         file: index.qmd
       - text: "My Resume"
         file: resume.qmd
-      - text: "GraphQL Queries"
+      - text: "Shopify Admin API"
         file: graphql.qmd
       - text: "Clone Hero Auto Charter"
         file: ghac.qmd

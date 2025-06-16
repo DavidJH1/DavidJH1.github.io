@@ -44,7 +44,7 @@ import librosa
 y, sr = librosa.load("song.mp3")
 librosa.display.waveshow(y, sr=sr)
 ```
-![Wave Data](..\Images\wave_full.png)
+![Wave Data](Images\wave_full.png)
 
 
 ### Step 2: Generate Spectrograms
@@ -53,7 +53,7 @@ While waveform data is a start, it doesn’t capture musical structure clearly. 
 
 A **spectrogram** shows frequency (y-axis) over time (x-axis), with amplitude represented by color intensity (measured in decibels). But raw spectrograms don’t reflect human hearing very well.
 
-![Normal Spectrogram](..\Images\spectrogram_full.png)
+![Normal Spectrogram](Images\spectrogram_full.png)
 
 To address that, we use a **Mel spectrogram**, which spaces frequencies on a perceptual scale that better matches how we hear sound — emphasizing low frequencies more than high ones.
 
@@ -74,7 +74,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-![Mel Spectrogram](..\Images\melspec_full.png)
+![Mel Spectrogram](Images\melspec_full.png)
 
 
 ### Step 3: Aligning Audio with Chart Data
@@ -115,7 +115,7 @@ For instance, if a slice covers 45.3 to 45.35 seconds of the song and a red note
 
 To visualize this, I wrote a helper function to **step through the Mel spectrogram** and grab 12-pixel-wide image slices at specific timestamps. Here's an example:
 
-![Mel Slice with Note](..\Images\melspec_slice.png)
+![Mel Slice with Note](Images\melspec_slice.png)
 
 These slices serve as the **training examples** for the model.
 
