@@ -1,75 +1,5 @@
 [
   {
-    "objectID": "ghac.html",
-    "href": "ghac.html",
-    "title": "Auto-Charting Guitar Hero Songs with Machine Learning",
-    "section": "",
-    "text": "Guitar Hero has been around since the early 2000s, inspiring a passionate fanbase. One of the community’s biggest contributions is Clone Hero, a free PC-based version of the game that supports custom songs. Alongside Clone Hero, fans have built tools to help manually chart songs — a process that can take many hours for a single track.\nEach full chart typically includes multiple instruments and difficulty levels. For example, a guitar, bass, and drums chart across four difficulties adds up to 15+ charts per song, not counting vocals. It’s incredibly time-consuming.\nThe idea behind this project is simple but ambitious: build a model that can listen to a song and predict which Guitar Hero notes should go where.",
-    "crumbs": [
-      "Clone Hero Auto Charter"
-    ]
-  },
-  {
-    "objectID": "ghac.html#background",
-    "href": "ghac.html#background",
-    "title": "Auto-Charting Guitar Hero Songs with Machine Learning",
-    "section": "",
-    "text": "Guitar Hero has been around since the early 2000s, inspiring a passionate fanbase. One of the community’s biggest contributions is Clone Hero, a free PC-based version of the game that supports custom songs. Alongside Clone Hero, fans have built tools to help manually chart songs — a process that can take many hours for a single track.\nEach full chart typically includes multiple instruments and difficulty levels. For example, a guitar, bass, and drums chart across four difficulties adds up to 15+ charts per song, not counting vocals. It’s incredibly time-consuming.\nThe idea behind this project is simple but ambitious: build a model that can listen to a song and predict which Guitar Hero notes should go where.",
-    "crumbs": [
-      "Clone Hero Auto Charter"
-    ]
-  },
-  {
-    "objectID": "ghac.html#data-collection",
-    "href": "ghac.html#data-collection",
-    "title": "Auto-Charting Guitar Hero Songs with Machine Learning",
-    "section": "Data Collection",
-    "text": "Data Collection\nTo train a model like this, I needed two key things:\n\nThe song audio\nThe Guitar Hero chart (specifically the expert guitar part)\n\nFortunately, the Clone Hero community has manually charted thousands of songs and shares them freely online. I used the site Chorus Encore to download songs and their corresponding .chart files. Chorus\nFor the scope of this initial model, I focused only on expert guitar charts to reduce complexity and eliminate other instruments and difficulties.",
-    "crumbs": [
-      "Clone Hero Auto Charter"
-    ]
-  },
-  {
-    "objectID": "ghac.html#data-processing",
-    "href": "ghac.html#data-processing",
-    "title": "Auto-Charting Guitar Hero Songs with Machine Learning",
-    "section": "Data Processing",
-    "text": "Data Processing\nComputers don’t have ears — so to help them “listen” to music, we must convert sound into numerical data.\n\nStep 1: Convert audio to waveforms\nUsing Librosa, I first transformed each audio file into waveform data.\nimport librosa\ny, sr = librosa.load(\"song.mp3\")\nlibrosa.display.waveshow(y, sr=sr)\n\n\n\nWave Data\n\n\n\n\nStep 2: Generate Spectrograms\nWhile waveform data is a start, it doesn’t capture musical structure clearly. To extract meaningful audio features, we convert waveforms into spectrograms.\nA spectrogram shows frequency (y-axis) over time (x-axis), with amplitude represented by color intensity (measured in decibels). But raw spectrograms don’t reflect human hearing very well.\n\n\n\nNormal Spectrogram\n\n\nTo address that, we use a Mel spectrogram, which spaces frequencies on a perceptual scale that better matches how we hear sound — emphasizing low frequencies more than high ones.\nimport librosa\nimport librosa.display\nimport matplotlib.pyplot as plt\n\ny, sr = librosa.load(\"song.mp3\", sr=None)\nS = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=128)\nS_dB = librosa.power_to_db(S, ref=np.max)\n\nplt.figure(figsize=(10, 4))\nlibrosa.display.specshow(S_dB, sr=sr, x_axis='time', y_axis='mel')\nplt.colorbar(format='%+2.0f dB')\nplt.title('Mel Spectrogram')\nplt.tight_layout()\nplt.show()\n\n\n\nMel Spectrogram\n\n\n\n\nStep 3: Aligning Audio with Chart Data\nThe next major step was to align the audio data with Guitar Hero note events from the .chart files.\nEach .chart file contains a structured list of musical events, like so:\n6528 = N 1 0\n6528 = N 6 0\n\nLet’s break this down: - 6528 is the tick — a unit of time used by the game engine. - N means it’s a note event. - 1 represents the note type (0 = green, 1 = red, 2 = yellow, 3 = blue, 4 = orange). - 6 indicates a tap note flag (5 = HOPO, 6 = tap, 7 = open note). - 0 is the note duration in ticks (for sustains).\nAt tick 6528, the chart defines a red note (1) that is also a tap note (6).\n\nTo turn this into data the model can use, I needed to:\n\nFilter only the expert guitar part from the chart file.\nConvert ticks to seconds using tempo and resolution metadata.\nSlice the Mel spectrogram into fixed-size time windows (e.g., 32nd notes).\nAssign a label to each slice based on which note (if any) occurs during that time.\n\nEach time slice of the Mel spectrogram becomes a training input, and the corresponding chart label becomes the target output.\nFor instance, if a slice covers 45.3 to 45.35 seconds of the song and a red note begins at 45.32, that slice would be labeled \"red\".\n\nTo visualize this, I wrote a helper function to step through the Mel spectrogram and grab 12-pixel-wide image slices at specific timestamps. Here’s an example:\n\n\n\nMel Slice with Note\n\n\nThese slices serve as the training examples for the model.\nIf no note occurred during a time slice, I labeled it as \"no note\".\n\n\nA Note on Complexity\nOne tricky part of this process is that multiple note events can happen at the same tick. For example:\n6528 = N 0 0\n6528 = N 1 0\n6528 = N 2 0\n6528 = N 5 0\n\nThis could represent a chord of green-red-yellow, flagged as a HOPO. So, some game events need to be grouped or combined into a single label.\nAdditionally, a single in-game note can span multiple lines in the .chart file — including note, modifier (tap, HOPO), and sustain.\nI created a function to: - Collapse multiple events into a single charted note. - Convert the tick to absolute time (in seconds). - Attach that note to a specific spectrogram window.\nWith this mapping complete, I had a labeled dataset of Mel spectrogram windows aligned to actual in-game notes — ready for model training.",
-    "crumbs": [
-      "Clone Hero Auto Charter"
-    ]
-  },
-  {
-    "objectID": "ghac.html#model-training",
-    "href": "ghac.html#model-training",
-    "title": "Auto-Charting Guitar Hero Songs with Machine Learning",
-    "section": "Model Training",
-    "text": "Model Training\nWith the Mel spectrogram slices labeled and aligned to the chart data, I moved on to training the machine learning model.\n\nChoosing a Model Architecture\nSince Mel spectrograms resemble grayscale images, I began with a Convolutional Neural Network (CNN). CNNs are well-suited to capturing local patterns in image-like data and have been successfully applied in audio classification tasks like speech recognition and music genre detection.\nEach spectrogram slice was treated like a mini image — with frequency on one axis and time on the other.\n\n\nTraining Strategy\nRather than training the model on the full dataset at once, I adopted a song-by-song training strategy. This allowed the model to focus on one musical style at a time and reduced memory usage.\nKey training details: - Input: 12-pixel-wide Mel spectrogram slices - Output: A class label for each slice (e.g., green, red, yellow, no note, etc.) - Batching: Processed one song at a time - Dataset: 127 songs from various genres\n\n\nResults and Observations\nAfter training the CNN on 127 songs, the results were mixed at best.\nThe model showed some early signs of pattern recognition, but it struggled with accuracy and diversity in its predictions:\n\nLimited Note Variety: In many test cases, the model predicted only one or two note types (e.g., everything became yellow tap or blue strum).\nSparse Multi-Note Detection: On one occasion, it predicted a few blue-yellow double strums, but this wasn’t consistent.\nOverfitting to Common Patterns: The model learned to favor dominant notes in the dataset — usually mid-range frets — but ignored less common patterns like open notes or chords.\nPredicting the Average: This to me showed the model had no real confindence for any specific note and basically guessed the average for all notes\n\nThese issues persisted across multiple model architectures and tuning attempts.\n\n\n\nWhy the Model Struggled\nThere are several reasons I identified that might cause a CNN to struggle to chart effectively:\n\n1. Guitar Hero Notes Are Symbolic, Not Absolute\nIn Guitar Hero, fret buttons (green, red, yellow, etc.) don’t correspond to specific frequencies or notes like a piano key would. Instead, they represent relative musical positions based on gameplay feel and visual clarity.\nFor example: - A fast guitar run might use green → orange repeatedly, even as the actual pitch moves across multiple octaves. - A “green note” could sound completely different depending on the context and instrument tone.\nThis makes the task less like audio classification and more like musical pattern modeling.\n\n\n2. Lack of Temporal Awareness\nCNNs excel at capturing local spatial patterns but lack memory. They view each spectrogram slice independently, with no sense of what came before or after.\nBut musical structure is sequential: - Notes depend on what came before (e.g., a tap note follows a strummed note). - Chord progressions, scales, and rhythms span multiple time slices.\nWithout a mechanism for tracking time, the model misses the “feel” of the song.\n\n\n3. Chart Label Noise and Inconsistency\nEven though I filtered for expert guitar charts, many charts downloaded from the Clone Hero community varied in quality:\n\nSome were poorly timed.\nOthers were incomplete or inconsistently charted.\nSome songs had duplicate charts or strange timing quirks.\n\nThis creates label noise — a known challenge for training supervised models. Garbage in, garbage out.\n\n\n4. Audio Quality and Genre Variety\nThe songs came from many different sources, formats, and genres. Some were high-quality studio tracks, others were fan edits or remixes with: - Loud mixing - Distorted guitars - Missing instrumental separation\nThis variability made it harder for the model to find consistent, transferable audio patterns.\n\n\n\n\nSummary\nDespite preprocessing and careful alignment, the CNN model failed to generalize across songs. It could latch onto local features, but it lacked the ability to: - Track musical phrasing - Understand rhythm and context - Adapt to different genres or artists\nThis project revealed the limits of CNNs for symbolic music generation, especially in cases where labels are abstract and context-dependent — like charting Guitar Hero notes from raw audio.",
-    "crumbs": [
-      "Clone Hero Auto Charter"
-    ]
-  },
-  {
-    "objectID": "ghac.html#next-steps",
-    "href": "ghac.html#next-steps",
-    "title": "Auto-Charting Guitar Hero Songs with Machine Learning",
-    "section": "Next Steps",
-    "text": "Next Steps\nWhile the CNN-based model had limitations, this project revealed exciting opportunities for improvement and future exploration.\nHere are the top areas I’m planning to pursue:\n\n1. Switch to a Sequence-Based Model\nSince music, and Guitar Hero charts, are inherently sequential, a model that captures temporal context is better suited to this task.\nOptions include: - Recurrent Neural Networks (RNNs) like LSTMs or GRUs - Temporal Convolutional Networks (TCNs) - Transformer architectures like those used in music generation or transcription\nThese models can “remember” previous inputs and identify patterns across time, which is essential for understanding rhythm, phrasing, and chart structure.\n\n\n2. Improve Tick-to-Time Alignment\nA small timing mismatch between chart ticks and audio slices could introduce major labeling errors. I’m planning to: - Review Clone Hero’s tick and tempo resolution more precisely - Cross-reference tick timing with actual beatmaps - Validate against hand-labeled timestamps\nEven a 50ms misalignment can cause the model to associate the wrong note with the wrong audio.\n\n\n3. Clean the Dataset\nBetter data = better model.\nFuture iterations will focus on: - Filtering high-quality charts only - Possibly limiting to a single band or genre (e.g., Metallica, punk rock, pop punk) - Using high-resolution, properly mastered audio files\nCharting is already subjective, and bad labels make the model’s job nearly impossible. Reducing label noise is critical.\n\n\n4. Expand Label Space or Use Multi-Label Classification\nRight now, the model assumes a single label per audio slice, which fails in the case of chords or overlapping notes. I could atempt to organize and add labels to measures or phrases instead of labeling individual notes.\nA future model could: - Use a multi-label approach (e.g., outputting [1, 0, 1, 0, 0] for green + yellow) - Predict event types like tap, HOPO, sustain, etc. - Consider hierarchical prediction (e.g., first “note present,” then “which note(s)”)\n\n\n5. Add Onset Detection or Beat-Synced Windows\nInstead of fixed time windows (e.g., every 0.05 seconds), I could: - Align slices to beats or subdivisions using a beat tracker - Use onset detection to cut at transients (e.g., the start of each note)\nThis would make slices more musically meaningful and reduce label ambiguity.",
-    "crumbs": [
-      "Clone Hero Auto Charter"
-    ]
-  },
-  {
-    "objectID": "ghac.html#conclusion",
-    "href": "ghac.html#conclusion",
-    "title": "Auto-Charting Guitar Hero Songs with Machine Learning",
-    "section": "Conclusion",
-    "text": "Conclusion\nThis project explored what it takes to build an auto-charter for Guitar Hero songs — a model that listens to music and outputs note charts.\nKey accomplishments: - Built a pipeline to convert audio into Mel spectrograms - Parsed .chart files and aligned game notes to audio - Trained and evaluated a CNN model on 127 custom songs - Identified core challenges in symbolic audio modeling\nThe model didn’t fully succeed — but it laid the groundwork for what a future system could become. With better timing alignment, more consistent labels, and a sequence-aware model, it’s entirely possible to generate accurate, playable Guitar Hero charts from real songs.\nThis is just the first iteration, and I’m excited to keep building.",
-    "crumbs": [
-      "Clone Hero Auto Charter"
-    ]
-  },
-  {
     "objectID": "graphql.html",
     "href": "graphql.html",
     "title": "Getting Started with Shopify’s GraphQL Admin API",
@@ -159,5 +89,75 @@
     "title": "about me",
     "section": "",
     "text": "MarkDown Basics"
+  },
+  {
+    "objectID": "ghac.html",
+    "href": "ghac.html",
+    "title": "Auto-Charting Guitar Hero Songs with Machine Learning",
+    "section": "",
+    "text": "Guitar Hero has been around since the early 2000s, inspiring a passionate fanbase. One of the community’s biggest contributions is Clone Hero, a free PC-based version of the game that supports custom songs. Alongside Clone Hero, fans have built tools to help manually chart songs — a process that can take many hours for a single track.\nEach full chart typically includes multiple instruments and difficulty levels. For example, a guitar, bass, and drums chart across four difficulties adds up to 15+ charts per song, not counting vocals. It’s incredibly time-consuming.\nThe idea behind this project is simple but ambitious: build a model that can listen to a song and predict which Guitar Hero notes should go where.",
+    "crumbs": [
+      "Clone Hero Auto Charter"
+    ]
+  },
+  {
+    "objectID": "ghac.html#background",
+    "href": "ghac.html#background",
+    "title": "Auto-Charting Guitar Hero Songs with Machine Learning",
+    "section": "",
+    "text": "Guitar Hero has been around since the early 2000s, inspiring a passionate fanbase. One of the community’s biggest contributions is Clone Hero, a free PC-based version of the game that supports custom songs. Alongside Clone Hero, fans have built tools to help manually chart songs — a process that can take many hours for a single track.\nEach full chart typically includes multiple instruments and difficulty levels. For example, a guitar, bass, and drums chart across four difficulties adds up to 15+ charts per song, not counting vocals. It’s incredibly time-consuming.\nThe idea behind this project is simple but ambitious: build a model that can listen to a song and predict which Guitar Hero notes should go where.",
+    "crumbs": [
+      "Clone Hero Auto Charter"
+    ]
+  },
+  {
+    "objectID": "ghac.html#data-collection",
+    "href": "ghac.html#data-collection",
+    "title": "Auto-Charting Guitar Hero Songs with Machine Learning",
+    "section": "Data Collection",
+    "text": "Data Collection\nTo train a model like this, I needed two key things:\n\nThe song audio\nThe Guitar Hero chart (specifically the expert guitar part)\n\nFortunately, the Clone Hero community has manually charted thousands of songs and shares them freely online. I used the site Chorus Encore to download songs and their corresponding .chart files. Chorus\nFor the scope of this initial model, I focused only on expert guitar charts to reduce complexity and eliminate other instruments and difficulties.",
+    "crumbs": [
+      "Clone Hero Auto Charter"
+    ]
+  },
+  {
+    "objectID": "ghac.html#data-processing",
+    "href": "ghac.html#data-processing",
+    "title": "Auto-Charting Guitar Hero Songs with Machine Learning",
+    "section": "Data Processing",
+    "text": "Data Processing\nComputers don’t have ears — so to help them “listen” to music, we must convert sound into numerical data.\n\nStep 1: Convert audio to waveforms\nUsing Librosa, I first transformed each audio file into waveform data.\nimport librosa\ny, sr = librosa.load(\"song.mp3\")\nlibrosa.display.waveshow(y, sr=sr)\n\n\n\nWave Data\n\n\n\n\nStep 2: Generate Spectrograms\nWhile waveform data is a start, it doesn’t capture musical structure clearly. To extract meaningful audio features, we convert waveforms into spectrograms.\nA spectrogram shows frequency (y-axis) over time (x-axis), with amplitude represented by color intensity (measured in decibels). But raw spectrograms don’t reflect human hearing very well.\n\n\n\nNormal Spectrogram\n\n\nTo address that, we use a Mel spectrogram, which spaces frequencies on a perceptual scale that better matches how we hear sound — emphasizing low frequencies more than high ones.\nimport librosa\nimport librosa.display\nimport matplotlib.pyplot as plt\n\ny, sr = librosa.load(\"song.mp3\", sr=None)\nS = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=128)\nS_dB = librosa.power_to_db(S, ref=np.max)\n\nplt.figure(figsize=(10, 4))\nlibrosa.display.specshow(S_dB, sr=sr, x_axis='time', y_axis='mel')\nplt.colorbar(format='%+2.0f dB')\nplt.title('Mel Spectrogram')\nplt.tight_layout()\nplt.show()\n\n\n\nMel Spectrogram\n\n\n\n\nStep 3: Aligning Audio with Chart Data\nThe next major step was to align the audio data with Guitar Hero note events from the .chart files.\nEach .chart file contains a structured list of musical events, like so:\n6528 = N 1 0\n6528 = N 6 0\n\nLet’s break this down: - 6528 is the tick — a unit of time used by the game engine. - N means it’s a note event. - 1 represents the note type (0 = green, 1 = red, 2 = yellow, 3 = blue, 4 = orange). - 6 indicates a tap note flag (5 = HOPO, 6 = tap, 7 = open note). - 0 is the note duration in ticks (for sustains).\nAt tick 6528, the chart defines a red note (1) that is also a tap note (6).\n\nTo turn this into data the model can use, I needed to:\n\nFilter only the expert guitar part from the chart file.\nConvert ticks to seconds using tempo and resolution metadata.\nSlice the Mel spectrogram into fixed-size time windows (e.g., 32nd notes).\nAssign a label to each slice based on which note (if any) occurs during that time.\n\nEach time slice of the Mel spectrogram becomes a training input, and the corresponding chart label becomes the target output.\nFor instance, if a slice covers 45.3 to 45.35 seconds of the song and a red note begins at 45.32, that slice would be labeled \"red\".\n\nTo visualize this, I wrote a helper function to step through the Mel spectrogram and grab 12-pixel-wide image slices at specific timestamps. Here’s an example:\n\n\n\nMel Slice with Note\n\n\nThese slices serve as the training examples for the model.\nIf no note occurred during a time slice, I labeled it as \"no note\".\n\n\nA Note on Complexity\nOne tricky part of this process is that multiple note events can happen at the same tick. For example:\n6528 = N 0 0\n6528 = N 1 0\n6528 = N 2 0\n6528 = N 5 0\n\nThis could represent a chord of green-red-yellow, flagged as a HOPO. So, some game events need to be grouped or combined into a single label.\nAdditionally, a single in-game note can span multiple lines in the .chart file — including note, modifier (tap, HOPO), and sustain.\nI created a function to: - Collapse multiple events into a single charted note. - Convert the tick to absolute time (in seconds). - Attach that note to a specific spectrogram window.\nWith this mapping complete, I had a labeled dataset of Mel spectrogram windows aligned to actual in-game notes — ready for model training.",
+    "crumbs": [
+      "Clone Hero Auto Charter"
+    ]
+  },
+  {
+    "objectID": "ghac.html#model-training",
+    "href": "ghac.html#model-training",
+    "title": "Auto-Charting Guitar Hero Songs with Machine Learning",
+    "section": "Model Training",
+    "text": "Model Training\nWith the Mel spectrogram slices labeled and aligned to the chart data, I moved on to training the machine learning model.\n\nChoosing a Model Architecture\nSince Mel spectrograms resemble grayscale images, I began with a Convolutional Neural Network (CNN). CNNs are well-suited to capturing local patterns in image-like data and have been successfully applied in audio classification tasks like speech recognition and music genre detection.\nEach spectrogram slice was treated like a mini image — with frequency on one axis and time on the other.\n\n\nTraining Strategy\nRather than training the model on the full dataset at once, I adopted a song-by-song training strategy. This allowed the model to focus on one musical style at a time and reduced memory usage.\nKey training details: - Input: 12-pixel-wide Mel spectrogram slices - Output: A class label for each slice (e.g., green, red, yellow, no note, etc.) - Batching: Processed one song at a time - Dataset: 127 songs from various genres\n\n\nResults and Observations\nAfter training the CNN on 127 songs, the results were mixed at best.\nThe model showed some early signs of pattern recognition, but it struggled with accuracy and diversity in its predictions:\n\nLimited Note Variety: In many test cases, the model predicted only one or two note types (e.g., everything became yellow tap or blue strum).\nSparse Multi-Note Detection: On one occasion, it predicted a few blue-yellow double strums, but this wasn’t consistent.\nOverfitting to Common Patterns: The model learned to favor dominant notes in the dataset — usually mid-range frets — but ignored less common patterns like open notes or chords.\nPredicting the Average: This to me showed the model had no real confindence for any specific note and basically guessed the average for all notes\n\nThese issues persisted across multiple model architectures and tuning attempts.\n\n\n\nWhy the Model Struggled\nThere are several reasons I identified that might cause a CNN to struggle to chart effectively:\n\n1. Guitar Hero Notes Are Symbolic, Not Absolute\nIn Guitar Hero, fret buttons (green, red, yellow, etc.) don’t correspond to specific frequencies or notes like a piano key would. Instead, they represent relative musical positions based on gameplay feel and visual clarity.\nFor example: - A fast guitar run might use green → orange repeatedly, even as the actual pitch moves across multiple octaves. - A “green note” could sound completely different depending on the context and instrument tone.\nThis makes the task less like audio classification and more like musical pattern modeling.\n\n\n2. Lack of Temporal Awareness\nCNNs excel at capturing local spatial patterns but lack memory. They view each spectrogram slice independently, with no sense of what came before or after.\nBut musical structure is sequential: - Notes depend on what came before (e.g., a tap note follows a strummed note). - Chord progressions, scales, and rhythms span multiple time slices.\nWithout a mechanism for tracking time, the model misses the “feel” of the song.\n\n\n3. Chart Label Noise and Inconsistency\nEven though I filtered for expert guitar charts, many charts downloaded from the Clone Hero community varied in quality:\n\nSome were poorly timed.\nOthers were incomplete or inconsistently charted.\nSome songs had duplicate charts or strange timing quirks.\n\nThis creates label noise — a known challenge for training supervised models. Garbage in, garbage out.\n\n\n4. Audio Quality and Genre Variety\nThe songs came from many different sources, formats, and genres. Some were high-quality studio tracks, others were fan edits or remixes with: - Loud mixing - Distorted guitars - Missing instrumental separation\nThis variability made it harder for the model to find consistent, transferable audio patterns.\n\n\n\n\nSummary\nDespite preprocessing and careful alignment, the CNN model failed to generalize across songs. It could latch onto local features, but it lacked the ability to: - Track musical phrasing - Understand rhythm and context - Adapt to different genres or artists\nThis project revealed the limits of CNNs for symbolic music generation, especially in cases where labels are abstract and context-dependent — like charting Guitar Hero notes from raw audio.",
+    "crumbs": [
+      "Clone Hero Auto Charter"
+    ]
+  },
+  {
+    "objectID": "ghac.html#next-steps",
+    "href": "ghac.html#next-steps",
+    "title": "Auto-Charting Guitar Hero Songs with Machine Learning",
+    "section": "Next Steps",
+    "text": "Next Steps\nWhile the CNN-based model had limitations, this project revealed exciting opportunities for improvement and future exploration.\nHere are the top areas I’m planning to pursue:\n\n1. Switch to a Sequence-Based Model\nSince music, and Guitar Hero charts, are inherently sequential, a model that captures temporal context is better suited to this task.\nOptions include: - Recurrent Neural Networks (RNNs) like LSTMs or GRUs - Temporal Convolutional Networks (TCNs) - Transformer architectures like those used in music generation or transcription\nThese models can “remember” previous inputs and identify patterns across time, which is essential for understanding rhythm, phrasing, and chart structure.\n\n\n2. Improve Tick-to-Time Alignment\nA small timing mismatch between chart ticks and audio slices could introduce major labeling errors. I’m planning to: - Review Clone Hero’s tick and tempo resolution more precisely - Cross-reference tick timing with actual beatmaps - Validate against hand-labeled timestamps\nEven a 50ms misalignment can cause the model to associate the wrong note with the wrong audio.\n\n\n3. Clean the Dataset\nBetter data = better model.\nFuture iterations will focus on: - Filtering high-quality charts only - Possibly limiting to a single band or genre (e.g., Metallica, punk rock, pop punk) - Using high-resolution, properly mastered audio files\nCharting is already subjective, and bad labels make the model’s job nearly impossible. Reducing label noise is critical.\n\n\n4. Expand Label Space or Use Multi-Label Classification\nRight now, the model assumes a single label per audio slice, which fails in the case of chords or overlapping notes. I could atempt to organize and add labels to measures or phrases instead of labeling individual notes.\nA future model could: - Use a multi-label approach (e.g., outputting [1, 0, 1, 0, 0] for green + yellow) - Predict event types like tap, HOPO, sustain, etc. - Consider hierarchical prediction (e.g., first “note present,” then “which note(s)”)\n\n\n5. Add Onset Detection or Beat-Synced Windows\nInstead of fixed time windows (e.g., every 0.05 seconds), I could: - Align slices to beats or subdivisions using a beat tracker - Use onset detection to cut at transients (e.g., the start of each note)\nThis would make slices more musically meaningful and reduce label ambiguity.",
+    "crumbs": [
+      "Clone Hero Auto Charter"
+    ]
+  },
+  {
+    "objectID": "ghac.html#conclusion",
+    "href": "ghac.html#conclusion",
+    "title": "Auto-Charting Guitar Hero Songs with Machine Learning",
+    "section": "Conclusion",
+    "text": "Conclusion\nThis project explored what it takes to build an auto-charter for Guitar Hero songs — a model that listens to music and outputs note charts.\nKey accomplishments: - Built a pipeline to convert audio into Mel spectrograms - Parsed .chart files and aligned game notes to audio - Trained and evaluated a CNN model on 127 custom songs - Identified core challenges in symbolic audio modeling\nThe model didn’t fully succeed — but it laid the groundwork for what a future system could become. With better timing alignment, more consistent labels, and a sequence-aware model, it’s entirely possible to generate accurate, playable Guitar Hero charts from real songs.\nThis is just the first iteration, and I’m excited to keep building.",
+    "crumbs": [
+      "Clone Hero Auto Charter"
+    ]
   }
 ]
