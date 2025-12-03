@@ -21,10 +21,6 @@ website:
     background: primary
     search: true   
     right:
-      - text: "Home"
-        file: index.qmd
-      - text: "My Resume"
-        file: resume.qmd
       - text: "Shopify Admin API"
         file: graphql.qmd
       - text: "Clone Hero Auto Charter"
